@@ -1,0 +1,14 @@
+[Unit]
+Description=Flappy Nifty service
+After=nginx.service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=root
+WorkingDirectory=/var/www/apps/FlappyNifty
+ExecStart=/root/.local/bin/uv run gunicorn -b unix:/run/flappynifty.sock --env "SCRIPT_NAME=/games/flappynifty" app:app
+
+[Install]
+WantedBy=multi-user.target
