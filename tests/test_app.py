@@ -22,8 +22,11 @@ class FlappyNiftyTests(unittest.TestCase):
         expected = {
             "Sniffyffy": "Lafyfty",
             "Swiffy": "Swifty",
+            "Taylor Sniffy": "Swifty",
             "Sniffychu": "Niftychu",
             "Swiffychu": "Niftychu",
+            "Sniffy the Hedgehog": "Hedgehog",
+            "Nifty the Hedgehog": "Hedgehog",
         }
         for old_key, new_key in expected.items():
             self.assertEqual(normalize_skin_key(old_key), new_key)

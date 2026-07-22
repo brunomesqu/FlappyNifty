@@ -345,8 +345,11 @@ let nearMisses = 0;
 const LEGACY_SKIN_KEYS = {
   Sniffyffy: "Lafyfty",
   Swiffy: "Swifty",
+  "Taylor Sniffy": "Swifty",
   Sniffychu: "Niftychu",
   Swiffychu: "Niftychu",
+  "Sniffy the Hedgehog": "Hedgehog",
+  "Nifty the Hedgehog": "Hedgehog",
 };
 
 function canonicalSkinKey(key) {

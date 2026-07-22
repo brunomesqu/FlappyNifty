@@ -26,8 +26,11 @@ db = SQLAlchemy(app)
 LEGACY_SKIN_KEYS = {
     "Sniffyffy": "Lafyfty",
     "Swiffy": "Swifty",
+    "Taylor Sniffy": "Swifty",
     "Sniffychu": "Niftychu",
     "Swiffychu": "Niftychu",
+    "Sniffy the Hedgehog": "Hedgehog",
+    "Nifty the Hedgehog": "Hedgehog",
 }
 
 
