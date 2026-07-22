@@ -65,6 +65,7 @@ class FlappyNiftyTests(unittest.TestCase):
             self.assertIn(label, script)
         for asset in (
             "static/assets/nifty.webm",
+            "static/assets/flappy-nifty-cover.png",
             "static/assets/icons/Lafyfty.webp",
             "static/assets/icons/Swifty.webp",
             "static/assets/icons/Niftychu.webp",
