@@ -18,6 +18,6 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
-            cd /var/www/apps/FlappySniffy
+            cd /var/www/apps/FlappyNifty
             git pull
-            systemctl restart flappy
+            systemctl restart flappynifty

@@ -23,6 +23,20 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
+LEGACY_SKIN_KEYS = {
+    "Sniffyffy": "Lafyfty",
+    "Swiffy": "Swifty",
+    "Sniffychu": "Niftychu",
+    "Swiffychu": "Niftychu",
+}
+
+
+def normalize_skin_key(skin: str | None) -> str:
+    """Return the canonical Nifty-era skin key for old and current clients."""
+    key = skin or "Classic"
+    return LEGACY_SKIN_KEYS.get(key, key)
+
+
 class Score(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), nullable=False)
@@ -36,7 +50,7 @@ class Score(db.Model):
 
     def to_dict(self):
         # Generate icon URL directly from skin name (skin_name.webp)
-        skin_name = self.skin or 'Classic'  # fallback to Classic if skin is None
+        skin_name = normalize_skin_key(self.skin)
         icon_url = url_for('static', filename=f'assets/icons/{skin_name}.webp')
         
         return {
@@ -44,7 +58,7 @@ class Score(db.Model):
             'name': self.name,
             'section': self.section,
             'score': self.score,
-            'skin': self.skin,
+            'skin': skin_name,
             'skin_icon_url': icon_url,
             'near_misses': self.near_misses,
             'pipes_passed': self.pipes_passed,
@@ -140,6 +154,14 @@ def ensure_db():
         if 'run_id' not in cols:
             with db.engine.connect() as conn:
                 conn.execute(db.text("ALTER TABLE score ADD COLUMN run_id TEXT NULL"))
+        # Preserve old leaderboard entries while moving renamed skins to their
+        # canonical keys. This is intentionally idempotent for every deploy.
+        with db.engine.begin() as conn:
+            for old_key, new_key in LEGACY_SKIN_KEYS.items():
+                conn.execute(
+                    db.text("UPDATE score SET skin = :new_key WHERE skin = :old_key"),
+                    {"old_key": old_key, "new_key": new_key},
+                )
     except Exception:
         # Best-effort; ignore if table doesn't exist yet or already updated
         pass
@@ -223,7 +245,7 @@ def submit_score():
     name_raw = data.get('name', 'Anon')[:64]
     name = sanitize_name(name_raw)[:64]
     section = data.get('section', 'General')[:64]
-    skin = data.get('skin', 'Classic')[:64]
+    skin = normalize_skin_key(data.get('skin', 'Classic')[:64])
     near_misses = data.get('nearMisses') or data.get('NearMisses') or 0
     try:
         score_val = int(data.get('score', 0))

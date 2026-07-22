@@ -340,8 +340,38 @@ let reachedRunMilestones = JSON.parse(localStorage.getItem('reachedRunMilestones
 // Track near misses (sparkle triggers for close pipe passes) per run
 let nearMisses = 0;
 
+// Keep unlock progress created by older versions of the game while moving the
+// three renamed skin keys to their canonical Nifty-era values.
+const LEGACY_SKIN_KEYS = {
+  Sniffyffy: "Lafyfty",
+  Swiffy: "Swifty",
+  Sniffychu: "Niftychu",
+  Swiffychu: "Niftychu",
+};
+
+function canonicalSkinKey(key) {
+  return LEGACY_SKIN_KEYS[key] || key;
+}
+
+function migrateStoredSkins() {
+  let storedSkins;
+  try {
+    storedSkins = JSON.parse(localStorage.getItem("unlockedSkins") || '["Classic"]');
+  } catch (_error) {
+    storedSkins = ["Classic"];
+  }
+  const migratedSkins = [...new Set(storedSkins.map(canonicalSkinKey))];
+  if (!migratedSkins.includes("Classic")) migratedSkins.unshift("Classic");
+  const storedCurrent = canonicalSkinKey(localStorage.getItem("currentSkin") || "Classic");
+  const migratedCurrent = migratedSkins.includes(storedCurrent) ? storedCurrent : "Classic";
+  localStorage.setItem("unlockedSkins", JSON.stringify(migratedSkins));
+  localStorage.setItem("currentSkin", migratedCurrent);
+  return { unlockedSkins: migratedSkins, currentSkin: migratedCurrent };
+}
+
 // unlocked skins saved in localStorage
-let unlockedSkins = JSON.parse(localStorage.getItem('unlockedSkins') || '["Classic"]'); // always have Classic
+const migratedSkinState = migrateStoredSkins();
+let unlockedSkins = migratedSkinState.unlockedSkins; // always have Classic
 if (unlockedSkins.length === 0) {
   // Give the player the default skin at start
   unlockedSkins.push('Classic');
@@ -349,8 +379,8 @@ if (unlockedSkins.length === 0) {
 }
 updateSkinMenuArrows();
 
-let currentSkin = localStorage.getItem('currentSkin') || 'Classic';
-let currentSkinIndex = unlockedSkins.indexOf(currentSkin) || 0;
+let currentSkin = migratedSkinState.currentSkin;
+let currentSkinIndex = Math.max(0, unlockedSkins.indexOf(currentSkin));
 
 // --- WEB AUDIO API SYSTEM ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -580,14 +610,14 @@ function showLoginForm() {
   const overlay = document.getElementById("login-overlay");
   overlay.innerHTML = `
     <video 
-      src="static/assets/sniffy.webm" 
+      src="static/assets/nifty.webm"
       style="width:150px; height:150px; object-fit:cover; margin-bottom:16px; display:block; margin-left:auto; margin-right:auto; border-radius:8px;"
       autoplay 
       muted 
       loop 
       playsinline
     ></video>
-    <h2 style="margin:0 0 6px 0; font-size:20px;">Welcome to Flappy Sniffy!</h2>
+    <h2 style="margin:0 0 6px 0; font-size:20px;">Welcome to Flappy Nifty!</h2>
     <input id="player-name" placeholder="Your name" type="text" autocomplete="name" style="font-size:14px;" />
     <input id="player-section" placeholder="Your section number" type="text" autocomplete="off" style="font-size:14px;" />
     <div style="display:flex; gap:12px; align-items:center; justify-content:center;">
@@ -604,7 +634,7 @@ function showWelcomeScreen() {
   const overlay = document.getElementById("login-overlay");
   overlay.innerHTML = `
     <video 
-      src="static/assets/sniffy.webm" 
+      src="static/assets/nifty.webm"
       style="width:150px; height:150px; object-fit:cover; margin-bottom:12px; display:block; margin-left:auto; margin-right:auto; border-radius:8px;"
       autoplay 
       muted 
@@ -888,7 +918,7 @@ const SKIN_PREVIEW_DISPLAY_SIZE = 120; // Display size after CSS scaling
 // Secret skins unlocked by leaderboard achievements
 const SECRET_SKINS = {
   "24k": {
-    name: "24 Karat Sniffy",
+    name: "24 Karat Nifty",
     body: "static/assets/skins/24k_body.png",
     frontWing: "static/assets/skins/24k_front_wing.png",
     backWing:  "static/assets/skins/24k_back_wing.png",
@@ -896,7 +926,7 @@ const SECRET_SKINS = {
     unlockMessage: "🏆 Amazing! You reached Top 5 in your section!"
   },
   "Number1": { 
-    name: "Number 1 Sniffy",
+    name: "Number 1 Nifty",
     body: "static/assets/skins/number1_body.png",
     frontWing: "static/assets/skins/front_wing.png",   
     backWing:  "static/assets/skins/back_wing.png",
@@ -907,127 +937,127 @@ const SECRET_SKINS = {
 
 const ALL_SKINS = {
   "Classic": { 
-    name: "Flappy Sniffy",
+    name: "Flappy Nifty",
     body: "static/assets/skins/classic_body.png",
     frontWing: "static/assets/skins/front_wing.png",   // shared placeholder
     backWing:  "static/assets/skins/back_wing.png"     // shared placeholder
   },
   "Idol": { 
-    name: "Idol Sniffy",
+    name: "Idol Nifty",
     body: "static/assets/skins/idol_body.png",
     frontWing: "static/assets/skins/idol_front_wing.png",   
     backWing:  "static/assets/skins/idol_back_wing.png"     
   },
   "Bald": { 
-    name: "Bald Sniffy",
+    name: "Bald Nifty",
     body: "static/assets/skins/bald_body.png",
     frontWing: "static/assets/skins/front_wing.png",  
     backWing:  "static/assets/skins/back_wing.png"     
   },
-  "Sniffyffy": {
-    name: "Sniffyffy",
-    body: "static/assets/skins/sniffyffy_body.png",
-    frontWing: "static/assets/skins/sniffyffy_front_wing.png",
-    backWing:  "static/assets/skins/sniffyffy_back_wing.png"
+  "Lafyfty": {
+    name: "Lafyfty",
+    body: "static/assets/skins/lafyfty_body.png",
+    frontWing: "static/assets/skins/lafyfty_front_wing.png",
+    backWing:  "static/assets/skins/lafyfty_back_wing.png"
   },
   "Cute": {
-    name: "Small and Cute Sniffy",
+    name: "Small and Cute Nifty",
     body: "static/assets/skins/cute_body.png",
     frontWing: "static/assets/skins/cute_front_wing.png",
     backWing:  "static/assets/skins/cute_back_wing.png"
   },
   "Impostor": {
-    name: "Impostor Sniffy",
+    name: "Impostor Nifty",
     body: "static/assets/skins/impostor_body.png",
     frontWing: "static/assets/skins/impostor_front_wing.png",
     backWing:  "static/assets/skins/impostor_back_wing.png"
   },
     "Princess": {
-    name: "Princess Sniffy",
+    name: "Princess Nifty",
     body: "static/assets/skins/princess_body.png",
     frontWing: "static/assets/skins/cute_front_wing.png",
     backWing:  "static/assets/skins/cute_back_wing.png"
   },
-    "Swiffy": {
-    name: "Taylor Sniffy",
-    body: "static/assets/skins/swiffy_body.png",
+    "Swifty": {
+    name: "Swifty",
+    body: "static/assets/skins/swifty_body.png",
     frontWing: "static/assets/skins/cute_front_wing.png",
     backWing:  "static/assets/skins/cute_back_wing.png"
   },
   "Mustang": {
-    name: "Mustang Sniffy",
+    name: "Mustang Nifty",
     body: "static/assets/skins/mustang_body.png",
     frontWing: "static/assets/skins/mustang_front_wing.png",
     backWing:  "static/assets/skins/mustang_back_wing.png"
   },
   "Canada": {
-    name: "Team Canada Sniffy",
+    name: "Team Canada Nifty",
     body: "static/assets/skins/canada_body.png",
     frontWing: "static/assets/skins/canada_front_wing.png",
     backWing:  "static/assets/skins/canada_back_wing.png"
   },
   "Spooky": {
-    name: "Spooky Sniffy",
+    name: "Spooky Nifty",
     body: "static/assets/skins/spooky_body.png",
     frontWing: "static/assets/skins/impostor_front_wing.png",
     backWing:  "static/assets/skins/impostor_back_wing.png"
   },
   "Retro": {
-    name: "Steamboat Sniffy",
+    name: "Steamboat Nifty",
     body: "static/assets/skins/retro_body.png",
-    frontWing: "static/assets/skins/sniffyffy_front_wing.png",
-    backWing:  "static/assets/skins/sniffyffy_back_wing.png"
+    frontWing: "static/assets/skins/lafyfty_front_wing.png",
+    backWing:  "static/assets/skins/lafyfty_back_wing.png"
   },
   "Hello": {
-    name: "Hello Sniffy",
+    name: "Hello Nifty",
     body: "static/assets/skins/hello_body.png",
-    frontWing: "static/assets/skins/sniffyffy_front_wing.png",
-    backWing:  "static/assets/skins/sniffyffy_back_wing.png"
+    frontWing: "static/assets/skins/lafyfty_front_wing.png",
+    backWing:  "static/assets/skins/lafyfty_back_wing.png"
   },
     "OG": {
-    name: "OG Sniffy",
+    name: "OG Nifty",
     body: "static/assets/skins/og_body.png",
-    frontWing: "static/assets/skins/sniffyffy_front_wing.png",
-    backWing:  "static/assets/skins/sniffyffy_back_wing.png"
+    frontWing: "static/assets/skins/lafyfty_front_wing.png",
+    backWing:  "static/assets/skins/lafyfty_back_wing.png"
   },
     "Strawhat": {
-    name: "Strawhat Sniffy",
+    name: "Strawhat Nifty",
     body: "static/assets/skins/strawhat_body.png",
     frontWing: "static/assets/skins/empty.png", // no front wing for this skin
     backWing:  "static/assets/skins/strawhat_back_wing.png"
   },
     "Hedgehog": {
-    name: "Sniffy the Hedgehog",
+    name: "Nifty the Hedgehog",
     body: "static/assets/skins/hedgehog_body.png",
-    frontWing: "static/assets/skins/sniffyffy_front_wing.png",
-    backWing:  "static/assets/skins/sniffyffy_back_wing.png"
+    frontWing: "static/assets/skins/lafyfty_front_wing.png",
+    backWing:  "static/assets/skins/lafyfty_back_wing.png"
   },
-    "Sniffychu": {
-    name: "Sniffychu",
-    body: "static/assets/skins/sniffychu_body.png",
-    frontWing: "static/assets/skins/sniffyffy_front_wing.png",
-    backWing:  "static/assets/skins/sniffyffy_back_wing.png"
+    "Niftychu": {
+    name: "Niftychu",
+    body: "static/assets/skins/niftychu_body.png",
+    frontWing: "static/assets/skins/lafyfty_front_wing.png",
+    backWing:  "static/assets/skins/lafyfty_back_wing.png"
   },
     "Superstar": {
-    name: "Superstar Sniffy",
+    name: "Superstar Nifty",
     body: "static/assets/skins/superstar_body.png",
     frontWing: "static/assets/skins/front_wing.png",
     backWing:  "static/assets/skins/back_wing.png"
   },
     "Astronaut": {
-    name: "Astronaut Sniffy",
+    name: "Astronaut Nifty",
     body: "static/assets/skins/astronaut_body.png",
     frontWing: "static/assets/skins/empty.png",
     backWing:  "static/assets/skins/empty.png"
   },
   "Tanuki": {
-    name: "Tanuki Sniffy",
+    name: "Tanuki Nifty",
     body: "static/assets/skins/tanuki_body.png",
     frontWing: "static/assets/skins/empty.png",
     backWing:  "static/assets/skins/tanuki_back_wing.png"
   },
   "Hollow": {
-    name: "Hollow Sniffy",
+    name: "Hollow Nifty",
     body: "static/assets/skins/hollow_body.png",
     frontWing: "static/assets/skins/empty.png",
     backWing:  "static/assets/skins/hollow_back_wing.png"
@@ -1044,7 +1074,7 @@ function getAllSkinsData() {
 function checkSecretSkinUnlocks(scoreData) {
   const newlyUnlocked = [];
   
-  // Check 24 Karat Sniffy (Top 5 in section)
+  // Check 24 Karat Nifty (Top 5 in section)
   if ((scoreData.is_section_top5 || scoreData.is_overall_top5) && !unlockedSkins.includes('24k')) {
     unlockedSkins.push('24k');
     newlyUnlocked.push({
@@ -1053,7 +1083,7 @@ function checkSecretSkinUnlocks(scoreData) {
     });
   }
   
-  // Check Number 1 Sniffy (#1 overall)
+  // Check Number 1 Nifty (#1 overall)
   if (scoreData.is_overall_best && !unlockedSkins.includes('Number1')) {
     unlockedSkins.push('Number1');
     newlyUnlocked.push({
